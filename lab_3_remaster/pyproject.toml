@@ -1,0 +1,31 @@
+[project]
+name = "basics-of-ai-agh-lab3"
+version = "1.0.0"
+description = "Basics of Artificial Intelligence course at AGH - lab 3: neural networks"
+authors = []
+requires-python = "==3.12.*"
+
+dependencies = [
+    # general
+    "matplotlib",
+    "numpy",
+    "pandas>=3.0",
+    # lab 3 - neural networks
+    "scikit-learn>=1.8",
+    "torch>=2.8",
+]
+
+[dependency-groups]
+dev = [
+    # not exported to requirements.txt, it breaks Google Colab
+    "jupyter",
+]
+
+# CPU-only PyTorch: a few hundred MB instead of a multi-GB CUDA build, GPU is not needed in this lab
+[tool.uv.sources]
+torch = [{ index = "pytorch-cpu" }]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
