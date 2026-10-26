@@ -13,6 +13,10 @@ dependencies = [
     # lab 3 - neural networks
     "scikit-learn>=1.8",
     "torch>=2.8",
+    # extra task 2 - export to ONNX
+    "onnx",
+    "onnxruntime",
+    "onnxscript",  # required by torch.onnx.export
 ]
 
 [dependency-groups]

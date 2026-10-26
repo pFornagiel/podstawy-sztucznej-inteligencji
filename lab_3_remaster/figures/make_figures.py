@@ -86,14 +86,6 @@ LOOP_GENERIC = [
     ("4. Aktualizacja\nparametrów", r"$\theta \leftarrow \theta - \eta\, \nabla_\theta L$", ""),
 ]
 
-LOOP_LOGREG = [
-    ("Inicjalizacja\nparametrów", r"$w, b$ - losowe", "Zadanie 2"),
-    ("1. Przejście\nw przód", r"$\hat p = \sigma(Xw + b)$", "Zadanie 2"),
-    ("2. Funkcja\nkosztu", r"$L = \mathrm{BCE}(y,\, \hat p)$", "Zadanie 3"),
-    ("3. Gradient\nkosztu", r"$\frac{\partial L}{\partial w},\ \frac{\partial L}{\partial b}$", "Zadania 1 i 4"),
-    ("4. Aktualizacja\nparametrów", r"$w \leftarrow w - \eta \frac{\partial L}{\partial w}$", "Zadanie 5"),
-]
-
 LOOP_TORCH = [
     ("Inicjalizacja\nparametrów", "model = Model()\nopt = optim.SGD(...)", "nn.Module"),
     ("1. Przejście\nw przód", "p_hat = model(X)", "forward()"),
@@ -137,116 +129,6 @@ def petla_uczenia(steps, name, highlight=(), loop_label="powtórz - kolejna epok
     ax.text((xs[1] + xs[4]) / 2, ybot + 0.08, loop_label, ha="center", va="bottom", fontsize=14, color=lc,
             weight="bold" if loop_active else None)
     save(fig, name)
-
-
-# --------------------------------------------------------------------------- 3
-def _graf_regresji(ax, yc):
-    """Wspólny graf obliczeń regresji logistycznej dla jednego punktu i. Zwraca pozycje węzłów."""
-    box(ax, 0.8, yc + 1.3, r"$x_{i1}$", GRAY, w=0.8)
-    box(ax, 0.8, yc + 0.45, r"$x_{i2}$", GRAY, w=0.8)
-    box(ax, 0.8, yc - 0.45, r"$w_1,\, w_2$", BLUE, w=1.1)
-    box(ax, 0.8, yc - 1.3, r"$b$", BLUE, w=0.8)
-    box(ax, 3.6, yc, r"$z_i$", INK, w=0.8, filled=0.05)
-    box(ax, 6.4, yc, r"$\hat p_i$", INK, w=0.8, filled=0.05)
-    box(ax, 6.4, yc - 1.4, r"$y_i$", GRAY, w=0.8)
-    box(ax, 9.2, yc, r"$\ell_i$", INK, w=0.8, filled=0.05)
-    box(ax, 11.8, yc, r"$L$", ORANGE, w=0.8)
-    for y0 in (yc + 1.3, yc + 0.45, yc - 0.45, yc - 1.3):
-        arrow(ax, (1.4 if y0 == yc - 0.45 else 1.25, y0), (3.15, yc + (y0 - yc) * 0.15), color=INK, lw=1.2)
-    arrow(ax, (6.85, yc - 1.25), (8.8, yc - 0.15), color=INK, lw=1.2)
-    return {"z": 3.6, "p": 6.4, "l": 9.2, "L": 11.8}
-
-
-def regresja_graf():
-    fig, ax = canvas(13.2, 7.4)
-    ax.set_ylim(-0.4, 7.4)
-    yc = 5.4
-    ax.text(0.2, 7.2, "Jeden punkt $i$: graf obliczeń", fontsize=14, color=BLUE, va="center")
-    n = _graf_regresji(ax, yc)
-    arrow(ax, (4.05, yc), (5.95, yc), color=BLUE, lw=2, text=r"$\sigma(z_i) = \frac{1}{1+e^{-z_i}}$",
-          text_offset=(0, 0.15), fontsize=13)
-    arrow(ax, (6.85, yc), (8.75, yc), color=BLUE, lw=2, text=r"$\mathrm{BCE}$", text_offset=(0, 0.15),
-          fontsize=13)
-    arrow(ax, (9.65, yc), (11.35, yc), color=BLUE, lw=2, text=r"średnia po $N$", text_offset=(0, 0.15),
-          fontsize=12)
-    ax.text(n["z"] + 0.35, yc - 0.45, r"$z_i = w_1 x_{i1} + w_2 x_{i2} + b$", ha="center", va="top",
-            fontsize=12, color=BLUE)
-    ax.text(n["z"] + 0.35, yc - 0.95, "logit (kombinacja liniowa)", ha="center", va="top", fontsize=10,
-            color=MUTED)
-    ax.text(n["p"], yc + 0.45, "prawdopodobieństwo\nklasy 1", ha="center", va="bottom", fontsize=10,
-            color=MUTED)
-    ax.text(n["l"], yc - 0.45, "koszt punktu", ha="center", va="top", fontsize=10, color=MUTED)
-    ax.text(n["L"], yc - 0.45, "jedna liczba", ha="center", va="top", fontsize=10, color=MUTED)
-
-    ax.plot([0.2, 13.0], [3.25, 3.25], color=tint(GRAY, 0.4), lw=1)
-    ax.text(0.2, 2.95, "Cały zbiór naraz (wektoryzacja w NumPy) - kształty", fontsize=14, color=BLUE,
-            va="center")
-    c = 0.3
-    top = 2.3
-    xe, _ = matrix(ax, 0.6, top, 6, 2, GRAY, cell=c, label="$X$", shape="(N, 2)")
-    ax.text(xe + 0.25, top - 3 * c, "@", ha="center", va="center", fontsize=16)
-    we, _ = matrix(ax, xe + 0.5, top - 2 * c, 2, 1, BLUE, cell=c, label="$w$", shape="(2,)")
-    ax.text(we + 0.25, top - 3 * c, "+", ha="center", va="center", fontsize=16)
-    be, _ = matrix(ax, we + 0.5, top - 2.5 * c, 1, 1, BLUE, cell=c, label="$b$", shape="liczba")
-    arrow(ax, (be + 0.15, top - 3 * c), (be + 1.0, top - 3 * c), color=BLUE)
-    ze, _ = matrix(ax, be + 1.1, top, 6, 1, INK, cell=c, label="$z$", shape="(N,)", strength=0.1)
-    arrow(ax, (ze + 0.15, top - 3 * c), (ze + 1.2, top - 3 * c), color=BLUE, text=r"$\sigma$")
-    pe, _ = matrix(ax, ze + 1.3, top, 6, 1, INK, cell=c, label=r"$\hat p$", shape="(N,)", strength=0.1)
-    ax.text(pe + 0.45, top - 3 * c, ",", ha="center", va="center", fontsize=16)
-    ye, _ = matrix(ax, pe + 0.7, top, 6, 1, GRAY, cell=c, label="$y$", shape="(N,)")
-    arrow(ax, (ye + 0.15, top - 3 * c), (ye + 1.2, top - 3 * c), color=BLUE, text=r"$\mathrm{BCE}$")
-    le, _ = matrix(ax, ye + 1.3, top, 6, 1, INK, cell=c, label=r"$\ell$", shape="(N,)", strength=0.1)
-    arrow(ax, (le + 0.15, top - 3 * c), (le + 1.2, top - 3 * c), color=BLUE, text="średnia")
-    box(ax, le + 1.65, top - 3 * c, "$L$", ORANGE, w=0.6)
-    ax.text(le + 1.65, top - 3 * c - 0.45, "liczba", ha="center", va="top", fontsize=10, color=MUTED)
-    ax.text(6.6, -0.25, "każdy wiersz $X$ to jeden punkt, każda kolumna to jedna cecha; "
-            "operacje σ i BCE działają element po elemencie",
-            ha="center", va="center", fontsize=10.5, color=MUTED)
-    save(fig, "regresja_graf.png")
-
-
-def regresja_backward():
-    fig, ax = canvas(13.2, 8.7)
-    yc = 5.6
-    ax.text(0.2, 8.45, "Przejście wstecz: reguła łańcuchowa = iloczyn lokalnych pochodnych",
-            fontsize=14, color=ORANGE, va="center")
-    _graf_regresji(ax, yc)
-    for a, b in ((4.05, 5.95), (6.85, 8.75), (9.65, 11.35)):
-        arrow(ax, (a, yc), (b, yc), color=tint(BLUE, 0.5), lw=1.5)
-    kw = dict(ha="center", fontsize=13, color=ORANGE)
-    yb = yc + 0.75
-    arrow(ax, (11.6, yb), (9.4, yb), color=ORANGE, lw=1.6, rad=0.25)
-    ax.text(10.5, yb + 0.45, r"$\frac{\partial L}{\partial \ell_i} = \frac{1}{N}$", va="bottom", **kw)
-    arrow(ax, (9.0, yb), (6.6, yb), color=ORANGE, lw=1.6, rad=0.25)
-    ax.text(7.8, yb + 0.45, r"$\frac{\partial \ell_i}{\partial \hat p_i}$", va="bottom", **kw)
-    arrow(ax, (6.2, yb), (3.8, yb), color=ORANGE, lw=1.6, rad=0.25)
-    ax.text(5.0, yb + 0.45, r"$\frac{\partial \hat p_i}{\partial z_i} = \sigma'(z_i)$", va="bottom", **kw)
-    ax.text(7.8, yb + 1.1, "numerycznie:\ndf(koszt, p̂)", ha="center", va="bottom", fontsize=10,
-            color=ORANGE, family=MONO)
-    ax.text(5.0, yb + 1.1, "numerycznie:\ndf(sigmoid, z)", ha="center", va="bottom", fontsize=10,
-            color=ORANGE, family=MONO)
-    ax.text(10.5, yb + 1.1, "ze średniej", ha="center", va="bottom", fontsize=10, color=ORANGE)
-    ax.text(2.6, yc - 1.75, r"$\frac{\partial z_i}{\partial w_j} = x_{ij}, \quad"
-            r"\frac{\partial z_i}{\partial b} = 1$", **kw, va="top")
-    ax.text(2.6, yc - 2.45, "wprost: z jest liniowe", ha="center", va="top", fontsize=10, color=ORANGE)
-
-    ax.plot([0.2, 13.0], [2.75, 2.75], color=tint(GRAY, 0.4), lw=1)
-    ax.text(0.2, 2.45, "Składamy wszystko dla całego zbioru", fontsize=14, color=ORANGE, va="center")
-    ax.text(0.4, 1.65,
-            r"$\delta_i = \frac{\partial L}{\partial z_i} = \frac{1}{N}\cdot"
-            r"\frac{\partial \ell_i}{\partial \hat p_i}\cdot\frac{\partial \hat p_i}{\partial z_i}$",
-            fontsize=16, va="center", color=INK)
-    ax.text(0.4, 0.75, r"$\frac{\partial L}{\partial w_j} = \sum_i \delta_i\, x_{ij}"
-            r"\qquad \frac{\partial L}{\partial b} = \sum_i \delta_i$", fontsize=16, va="center", color=INK)
-    c = 0.3
-    top = 2.1
-    xe, _ = matrix(ax, 7.4, top - 0.6, 2, 6, GRAY, cell=c, label=r"$X^\top$", shape="(2, N)")
-    ax.text(xe + 0.25, top - 0.6 - c, "@", ha="center", va="center", fontsize=16)
-    de, _ = matrix(ax, xe + 0.5, top, 6, 1, ORANGE, cell=c, label=r"$\delta$", shape="(N,)")
-    ax.text(de + 0.3, top - 0.6 - c, "=", ha="center", va="center", fontsize=16)
-    matrix(ax, de + 0.6, top - 0.6, 2, 1, ORANGE, cell=c, label=r"$\frac{\partial L}{\partial w}$",
-           shape="(2,) jak $w$")
-    save(fig, "regresja_backward.png")
 
 
 # --------------------------------------------------------------------------- 4
@@ -337,64 +219,184 @@ def mlp_architektura():
     save(fig, "mlp_architektura.png")
 
 
-# --------------------------------------------------------------------------- 6
-def spadek_gradientu_2d():
-    # elongated, slightly rotated bowl L(t1, t2) with its gradient
-    def loss(t1, t2):
-        return 0.5 * t1**2 + 2.0 * t2**2 + 0.6 * t1 * t2
+# --------------------------------------------------------------------------- 7
+def minibatche():
+    fig, ax = canvas(13.5, 5.9)
+    rows, cols, cell = 12, 5, 0.32
+    top = 5.05
+    batch_colors = [BLUE, ORANGE, AQUA]
+    order = [7, 2, 11, 4, 0, 9, 5, 1, 10, 3, 8, 6]  # row order after shuffling
 
-    def grad(t):
-        return np.array([t[0] + 0.6 * t[1], 4.0 * t[1] + 0.6 * t[0]])
+    texts = [[str(i + 1)] + [""] * (cols - 1) for i in range(rows)]
+    xe, ye = matrix(ax, 0.6, top, rows, cols, GRAY, cell=cell, label="X_train", shape="(38 400, 28)",
+                    texts=texts)
+    arrow(ax, (xe + 0.15, top - rows * cell / 2), (xe + 1.75, top - rows * cell / 2), color=INK,
+          text="shuffle=True", text_offset=(0, 0.12), fontsize=11)
+    ax.text(xe + 0.95, top - rows * cell / 2 - 0.15, "nowa kolejność\nw każdej epoce", ha="center", va="top",
+            fontsize=10, color=MUTED)
 
-    path = [np.array([-2.6, 1.6])]
-    for _ in range(25):
-        path.append(path[-1] - 0.18 * grad(path[-1]))
-    path = np.array(path)
+    x2 = xe + 1.9
+    for i, src in enumerate(order):
+        color = batch_colors[i // 4]
+        for j in range(cols):
+            ax.add_patch(Rectangle((x2 + j * cell, top - (i + 1) * cell), cell, cell, fc=tint(color, 0.3),
+                                   ec="white", lw=1.5))
+        ax.text(x2 + 0.5 * cell, top - (i + 0.5) * cell, str(src + 1), ha="center", va="center", fontsize=10)
+    ax.text(x2 + cols * cell / 2, top + 0.1, "po wymieszaniu", ha="center", va="bottom", fontsize=13)
 
-    g = np.linspace(-3, 3, 200)
-    T1, T2 = np.meshgrid(g, g)
-    L = loss(T1, T2)
+    x3 = x2 + cols * cell + 1.6
+    for k, color in enumerate(batch_colors):
+        yb = top - (4 * k + 2) * cell
+        ax.plot([x2 + cols * cell + 0.12] * 2, [top - 4 * k * cell - 0.05, top - 4 * (k + 1) * cell + 0.05],
+                color=color, lw=3, solid_capstyle="round")
+        arrow(ax, (x2 + cols * cell + 0.2, yb), (x3 - 0.1, yb), color=color, lw=1.8)
+        box(ax, x3 + 1.25, yb, f"paczka {k + 1}", color, w=2.3, h=0.7, fontsize=13)
+        ax.text(x3 + 1.25, yb - 0.5, "(256, 28)", ha="center", va="top", fontsize=10, color=MUTED)
+        arrow(ax, (x3 + 2.45, yb), (x3 + 3.2, yb), color=color, lw=1.8)
+        box(ax, x3 + 4.55, yb, None, color, w=2.6, h=0.7, filled=0.08)
+        ax.text(x3 + 4.55, yb, f"krok {k + 1}", ha="center", va="center", fontsize=13)
+    ax.text(x3 + 4.55, top + 0.1, "zero_grad, forward,\nbackward, step", ha="center", va="bottom",
+            fontsize=10, color=MUTED, family=MONO)
 
-    fig = plt.figure(figsize=(13, 5.2))
-    ax1 = fig.add_subplot(1, 2, 1, projection="3d")
-    ax1.plot_surface(T1, T2, L, cmap="Blues_r", alpha=0.75, linewidth=0, rstride=4, cstride=4)
-    ax1.plot(path[:, 0], path[:, 1], loss(path[:, 0], path[:, 1]) + 0.1, "o-", color=ORANGE, ms=3, lw=1.5, zorder=5)
-    ax1.set_xlabel(r"$\theta_1$")
-    ax1.set_ylabel(r"$\theta_2$")
-    ax1.set_zlabel(r"$L(\theta_1, \theta_2)$")
-    ax1.set_title("Funkcja kosztu jako powierzchnia nad przestrzenią parametrów", fontsize=12)
-    ax1.view_init(elev=32, azim=-60)
+    ax.text(x3 + 2.9, 0.3, "1 epoka = 38 400 / 256 = 150 paczek = 150 kroków optymalizatora\n"
+            "(full batch GD: 1 epoka = 1 krok)", ha="center", va="center", fontsize=12, color=INK)
+    save(fig, "minibatche.png")
 
-    ax2 = fig.add_subplot(1, 2, 2)
-    cs = ax2.contourf(T1, T2, L, levels=25, cmap="Blues_r")
-    ax2.contour(T1, T2, L, levels=12, colors="white", linewidths=0.5, alpha=0.6)
-    for k in (0, 2, 5):  # negative gradient at a few steps, scaled for readability
-        p, d = path[k], -0.25 * grad(path[k])
-        ax2.add_patch(FancyArrowPatch(p, p + d, arrowstyle="-|>", mutation_scale=16, color=RED, lw=2, zorder=4))
-    ax2.plot(path[:, 0], path[:, 1], "o-", color=ORANGE, ms=4, lw=1.5, label="kolejne kroki spadku wzdłuż gradientu")
-    ax2.plot([], [], color=RED, lw=2, label=r"$-\nabla_\theta L$ - kierunek kroku")
-    ax2.scatter(*path[0], color=INK, s=50, zorder=5, label="start (losowe parametry)")
-    ax2.scatter(0, 0, marker="*", color=AQUA, s=250, zorder=5, label="minimum")
-    ax2.set_xlabel(r"$\theta_1$")
-    ax2.set_ylabel(r"$\theta_2$")
-    ax2.set_aspect("equal")
-    ax2.set_title("Widok z góry: poziomice funkcji kosztu", fontsize=12)
-    ax2.legend(loc="lower right", fontsize=9, framealpha=0.95)
-    fig.colorbar(cs, ax=ax2, label=r"$L$", shrink=0.85)
-    fig.tight_layout()
-    save(fig, "spadek_gradientu_2d.png")
+
+def mlp_tabularny():
+    fig, ax = canvas(15.6, 4.3)
+    yc = 2.5
+    steps = [
+        (0.8, "X", GRAY, 0.9, "(B, 28)"),
+        (3.1, "nn.Linear\n(28, 256)", BLUE, 1.75, "(B, 256)"),
+        (5.7, "nn.ReLU()", AQUA, 1.45, "(B, 256)"),
+        (8.3, "nn.Dropout\n(dropout)", GRAY, 1.75, "(B, 256)"),
+        (11.45, "nn.Linear\n(256, 1)", BLUE, 1.75, "(B, 1)"),
+        (14.35, "logit z", ORANGE, 1.25, ""),
+    ]
+    for i, (x, text, color, w, shape) in enumerate(steps):
+        box(ax, x, yc, None, color, w=w, h=0.95, filled=0.15)
+        ax.text(x, yc, text, ha="center", va="center", fontsize=11.5, family=None if i in (0, 5) else MONO)
+        if i + 1 < len(steps):
+            nx, nw = steps[i + 1][0], steps[i + 1][3]
+            arrow(ax, (x + w / 2 + 0.02, yc), (nx - nw / 2 - 0.02, yc), lw=1.6)
+            if shape:
+                ax.text((x + w / 2 + nx - nw / 2) / 2, yc + 0.12, shape, ha="center", va="bottom", fontsize=9.5,
+                        color=MUTED)
+
+    # bracket around the repeated hidden layer
+    x0, x1 = steps[1][0] - steps[1][3] / 2 - 0.15, steps[3][0] + steps[3][3] / 2 + 0.15
+    ax.add_patch(FancyBboxPatch((x0, yc - 0.75), x1 - x0, 1.5, boxstyle="round,pad=0.02,rounding_size=0.15",
+                                fc="none", ec=AQUA, lw=1.5, ls=(0, (4, 3))))
+    ax.text((x0 + x1) / 2, yc + 0.95, "warstwa ukryta - powtórzona n_layers razy", ha="center", va="bottom",
+            fontsize=12, color=AQUA)
+    ax.text((x0 + x1) / 2, yc - 0.95, "w kolejnych warstwach: nn.Linear(256, 256)", ha="center", va="top",
+            fontsize=10.5, color=MUTED, family=MONO)
+    ax.text(steps[4][0], yc - 0.95, "warstwa wyjściowa", ha="center", va="top", fontsize=10.5, color=MUTED)
+    ax.text(steps[5][0], yc - 0.7, "nn.BCEWithLogitsLoss\n(trening)\n\ntorch.sigmoid(z) = p̂\n(predykcja)",
+            ha="center", va="top", fontsize=9.5, color=MUTED)
+    ax.text(0.2, 0.25, "B - liczba przykładów w paczce, 28 - liczba cech", fontsize=10.5, color=MUTED)
+    save(fig, "mlp_tabularny.png")
+
+
+def _siec(ax, x0, dropped, title, sizes=(4, 6, 6, 1), dx=1.25, dy=0.62, r=0.2):
+    """Mała sieć MLP; dropped - zbiór (warstwa, neuron) wyłączonych przez dropout."""
+    pos = {}
+    for layer, n in enumerate(sizes):
+        for k in range(n):
+            pos[layer, k] = (x0 + layer * dx, 2.3 + (k - (n - 1) / 2) * dy)
+    for layer in range(len(sizes) - 1):
+        for a in range(sizes[layer]):
+            for b in range(sizes[layer + 1]):
+                off = (layer, a) in dropped or (layer + 1, b) in dropped
+                ax.plot(*zip(pos[layer, a], pos[layer + 1, b]), color=tint(BLUE, 0.15 if off else 0.55),
+                        lw=0.6 if off else 1.0, zorder=0)
+    for (layer, k), (x, y) in pos.items():
+        color = GRAY if layer == 0 else (ORANGE if layer == len(sizes) - 1 else AQUA)
+        if (layer, k) in dropped:
+            ax.add_patch(Circle((x, y), r, fc="white", ec=tint(GRAY, 0.6), lw=1.2))
+            ax.plot([x - r * 0.7, x + r * 0.7], [y - r * 0.7, y + r * 0.7], color=RED, lw=1.8)
+            ax.plot([x - r * 0.7, x + r * 0.7], [y + r * 0.7, y - r * 0.7], color=RED, lw=1.8)
+        else:
+            ax.add_patch(Circle((x, y), r, fc=tint(color, 0.35), ec=color, lw=1.4))
+    ax.text(x0 + dx * (len(sizes) - 1) / 2, 4.55, title, ha="center", va="center", fontsize=12.5)
+
+
+def dropout_schemat():
+    fig, ax = canvas(14.6, 5.0)
+    _siec(ax, 0.6, {(1, 1), (1, 4), (2, 0), (2, 2), (2, 5)}, "trening, krok 1")
+    _siec(ax, 5.2, {(1, 0), (1, 2), (1, 3), (2, 3), (2, 4)}, "trening, krok 2")
+    _siec(ax, 10.3, set(), "predykcja: wszystkie neurony")
+    ax.plot([9.6, 9.6], [0.2, 4.8], color=tint(GRAY, 0.5), lw=1)
+    ax.text(4.78, 0.15, "model.train(): w każdym kroku losowe neurony ukryte są zerowane (tu p = 0.5),\n"
+            "a pozostałe mnożone przez 1 / (1 - p)", ha="center", va="center", fontsize=10.5, color=MUTED)
+    ax.text(12.18, 0.15, "model.eval(): dropout wyłączony", ha="center", va="center", fontsize=10.5,
+            color=MUTED)
+    save(fig, "dropout.png")
+
+
+def _galaz(ax, x0, yc, skip):
+    """Gałąź F(x) bloku: Linear -> ReLU -> Dropout -> Linear. Zwraca x końca ostatniej warstwy."""
+    layers = [("Linear", BLUE), ("ReLU", AQUA), ("Dropout", GRAY), ("Linear", BLUE)]
+    w, gap = 1.15, 0.38
+    box(ax, x0, yc, "$x$", GRAY, w=0.6, h=0.6, fontsize=14)
+    x = x0 + 0.3 + gap
+    for k, (name, color) in enumerate(layers):
+        cx = x + w / 2
+        arrow(ax, (x - gap + 0.02, yc), (x - 0.02, yc), lw=1.4)
+        box(ax, cx, yc, None, color, w=w, h=0.6, filled=0.15)
+        ax.text(cx, yc, name, ha="center", va="center", fontsize=11, family=MONO)
+        x += w + gap
+    ax.add_patch(FancyBboxPatch((x0 + 0.3 + gap - 0.12, yc - 0.5), x - gap - (x0 + 0.3 + gap) + 0.24, 1.0,
+                                boxstyle="round,pad=0.02,rounding_size=0.15", fc="none", ec=BLUE, lw=1.2,
+                                ls=(0, (4, 3))))
+    ax.text((x0 + 0.3 + x - gap) / 2 + 0.2, yc - 0.62, "$F(x)$", ha="center", va="top", fontsize=13,
+            color=BLUE)
+    end = x - gap
+    if skip:
+        px = end + 0.75
+        arrow(ax, (end + 0.02, yc), (px - 0.25, yc), lw=1.4)
+        ax.add_patch(Circle((px, yc), 0.23, fc="white", ec=INK, lw=1.4))
+        ax.text(px, yc, "+", ha="center", va="center", fontsize=15)
+        ax.plot([x0, x0, px], [yc + 0.3, yc + 1.05, yc + 1.05], color=ORANGE, lw=2)
+        arrow(ax, (px, yc + 1.05), (px, yc + 0.25), color=ORANGE, lw=2)
+        ax.text((x0 + px) / 2, yc + 1.15, "połączenie rezydualne: x bez zmian", ha="center", va="bottom",
+                fontsize=11, color=ORANGE)
+        arrow(ax, (px + 0.25, yc), (px + 0.85, yc), lw=1.4)
+        box(ax, px + 1.2, yc, "$h$", INK, w=0.6, h=0.6, fontsize=14, filled=0.05)
+    else:
+        arrow(ax, (end + 0.02, yc), (end + 0.6, yc), lw=1.4)
+        box(ax, end + 0.95, yc, "$h$", INK, w=0.6, h=0.6, fontsize=14, filled=0.05)
+
+
+def blok_rezydualny():
+    fig, ax = canvas(14.4, 6.8)
+    ax.text(0.2, 6.5, "Zwykłe warstwy", fontsize=14, color=INK, va="center")
+    _galaz(ax, 0.6, 5.55, skip=False)
+    ax.text(9.6, 5.55, r"$h = F(x)$", fontsize=16, va="center")
+    ax.text(12.0, 5.55, r"$\frac{\partial h}{\partial x} = \frac{\partial F}{\partial x}$", fontsize=17,
+            va="center", color=ORANGE)
+
+    ax.plot([0.2, 14.2], [4.45, 4.45], color=tint(GRAY, 0.4), lw=1)
+    ax.text(0.2, 4.05, "Blok rezydualny", fontsize=14, color=INK, va="center")
+    _galaz(ax, 0.6, 2.3, skip=True)
+    ax.text(9.6, 2.3, r"$h = x + F(x)$", fontsize=16, va="center")
+    ax.text(12.0, 2.3, r"$\frac{\partial h}{\partial x} = 1 + \frac{\partial F}{\partial x}$", fontsize=17,
+            va="center", color=ORANGE)
+    ax.text(7.2, 0.45, "wejście i wyjście bloku mają ten sam kształt (N, hidden_size), więc można je dodać;\n"
+            "gradient wraca do x także przez ścieżkę z czynnikiem 1, więc nie zanika w głębokich sieciach",
+            ha="center", va="center", fontsize=11, color=MUTED)
+    save(fig, "blok_rezydualny.png")
 
 
 if __name__ == "__main__":
     petla_uczenia(LOOP_GENERIC, "petla_uczenia.png")
-    for task, hl in {1: (3,), 2: (0, 1), 3: (2,), 4: (3,), 5: (4, "loop")}.items():
-        petla_uczenia(LOOP_LOGREG, f"petla_uczenia_zad{task}.png", highlight=hl,
-                      loop_label="powtórz - kolejna epoka (Zadanie 5)")
     petla_uczenia(LOOP_TORCH, "petla_uczenia_pytorch.png", code=True,
                   loop_label="powtórz - kolejna epoka (Zadanie 7)")
-    regresja_graf()
-    regresja_backward()
     granica_decyzyjna()
     mlp_architektura()
-    spadek_gradientu_2d()
+    minibatche()
+    mlp_tabularny()
+    dropout_schemat()
+    blok_rezydualny()
     print("Zapisano schematy w", OUT)

@@ -1,0 +1,67 @@
+Hotel Booking Demand (Resort Hotel)
+
+Source: https://www.kaggle.com/datasets/jessemostipak/hotel-booking-demand
+TidyTuesday mirror: https://github.com/rfordatascience/tidytuesday/tree/main/data/2020/2020-02-11
+Original paper: N. Antonio, A. de Almeida, L. Nunes, "Hotel booking demand datasets", Data in Brief 22 (2019),
+https://doi.org/10.1016/j.dib.2018.11.126
+License: CC BY 4.0
+
+Bookings of a resort hotel in the Algarve region (Portugal), with arrival dates between July 2015 and August 2017.
+Personal information about customers was removed by the authors. This file contains only the resort hotel
+("H1" in the original paper, "Resort Hotel" in the Kaggle version), the column "hotel" was removed.
+40060 rows, 31 columns. The target variable is is_canceled.
+
+Columns:
+
+is_canceled: whether the booking was canceled (1) or not (0)
+lead_time: number of days between the booking date and the arrival date
+arrival_date_year: year of the arrival date
+arrival_date_month: month of the arrival date
+arrival_date_week_number: week number of the arrival date
+arrival_date_day_of_month: day of the month of the arrival date
+stays_in_weekend_nights: number of weekend nights (Saturday or Sunday) booked
+stays_in_week_nights: number of week nights (Monday to Friday) booked
+adults: number of adults
+children: number of children
+babies: number of babies
+meal: type of meal booked
+    BB - bed & breakfast
+    HB - half board (breakfast and one other meal, usually dinner)
+    FB - full board (breakfast, lunch and dinner)
+    SC, Undefined - no meal package
+country: country of origin, in ISO 3166-1 alpha-3 format
+market_segment: market segment
+    TA - travel agents
+    TO - tour operators
+distribution_channel: booking distribution channel
+    TA - travel agents
+    TO - tour operators
+    GDS - global distribution system
+is_repeated_guest: whether the booking was made by a repeated guest (1) or not (0)
+previous_cancellations: number of previous bookings canceled by the customer, prior to the current booking
+previous_bookings_not_canceled: number of previous bookings not canceled by the customer, prior to the current booking
+reserved_room_type: code of the room type reserved (anonymized)
+assigned_room_type: code of the room type assigned to the booking; it can differ from the reserved one, e.g.
+    due to hotel operation reasons (overbooking) or customer request
+booking_changes: number of changes made to the booking, from the moment it was entered into the system until
+    the check-in or cancellation
+deposit_type: whether the customer made a deposit to guarantee the booking
+    No Deposit - no deposit was made
+    Non Refund - a deposit was made in the value of the total stay cost
+    Refundable - a deposit was made with a value under the total cost of stay
+agent: ID of the travel agency that made the booking
+company: ID of the company that made the booking or is responsible for paying
+days_in_waiting_list: number of days the booking was on the waiting list, before it was confirmed to the customer
+customer_type: type of booking
+    Contract - booking with an allotment or other type of contract associated to it
+    Group - booking associated to a group
+    Transient - booking not part of a group or contract, and not associated to another transient booking
+    Transient-Party - transient booking associated to at least one other transient booking
+adr: average daily rate, i.e. sum of all lodging transactions divided by the total number of staying nights (in EUR)
+required_car_parking_spaces: number of car parking spaces required by the customer
+total_of_special_requests: number of special requests made by the customer (e.g. twin bed or high floor)
+reservation_status: last reservation status
+    Canceled - booking was canceled by the customer
+    Check-Out - customer has checked in and already departed
+    No-Show - customer did not check in and did not inform the hotel of the reason why
+reservation_status_date: date at which the last reservation status was set (YYYY-MM-DD)

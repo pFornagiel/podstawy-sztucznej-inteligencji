@@ -1,0 +1,42 @@
+HIGGS
+
+Source: https://archive.ics.uci.edu/dataset/280/higgs
+Subset used here: OpenML dataset 23512 (https://www.openml.org/d/23512), 98 050 rows of the original 11 million
+Authors: Daniel Whiteson, Pierre Baldi, Peter Sadowski
+Introductory paper: P. Baldi, P. Sadowski, D. Whiteson, "Searching for exotic particles in high-energy physics with
+deep learning", Nature Communications 5, 4308 (2014), https://arxiv.org/abs/1402.4735
+License: CC BY 4.0
+
+Monte Carlo simulations of proton-proton collisions in a particle accelerator. The task is to distinguish a signal
+process, in which new Higgs bosons are produced, from a background process with the same particles in the final
+state. Every collision ends with a lepton (electron or muon), four jets and missing energy (from neutrinos, which
+the detector does not see). The authors normalized the features, so momenta and masses have values around 1.
+
+This file contains a random sample of 60 000 rows (random_state=0) of the OpenML subset, without the single row
+with missing values. Values are rounded to 4 significant digits.
+60000 rows, 29 columns. The target variable is class (1 - signal, 0 - background).
+
+Columns:
+
+21 low-level features, measured by the detector:
+lepton_pT: transverse momentum of the lepton
+lepton_eta: pseudorapidity of the lepton (angle relative to the beam axis)
+lepton_phi: azimuthal angle of the lepton (angle around the beam axis)
+missing_energy_magnitude: magnitude of the missing transverse energy
+missing_energy_phi: azimuthal angle of the missing transverse energy
+jet1pt, jet1eta, jet1phi: transverse momentum, pseudorapidity and azimuthal angle of jet 1
+jet1b-tag: b-tagging score of jet 1 (whether the jet probably comes from a b quark)
+jet2pt, jet2eta, jet2phi, jet2b-tag: the same for jet 2
+jet3pt, jet3eta, jet3phi, jet3b-tag: the same for jet 3
+jet4pt, jet4eta, jet4phi, jet4b-tag: the same for jet 4
+
+7 high-level features, invariant masses computed by physicists from the low-level features:
+m_jj: invariant mass of two jets
+m_jjj: invariant mass of three jets
+m_lv: invariant mass of the lepton and the neutrino
+m_jlv: invariant mass of a jet, the lepton and the neutrino
+m_bb: invariant mass of two b-tagged jets
+m_wbb: invariant mass of a W boson and two b-tagged jets
+m_wwbb: invariant mass of two W bosons and two b-tagged jets
+
+class: 1 - signal (Higgs bosons produced), 0 - background

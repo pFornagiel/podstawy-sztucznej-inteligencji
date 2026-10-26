@@ -9,6 +9,7 @@ Pełne, nieskrócone wersje tekstów z notebooka oraz materiały robocze. Studen
 | `02_gradient_backprop.md` | kopia `../notatki_gradient_backprop.md` (gradient, reguła łańcuchowa, backprop) |
 | `03_czesc_II_pytorch.md` | pełne teksty Części II (tensory, autograd, `nn.Module`, optymalizatory) |
 | `04_czesc_III_mlp.md` | pełne teksty Części III (MLP, aproksymacja uniwersalna, wyprowadzenie "dwie warstwy liniowe = jedna") |
+| `05_czesc_IV_V_dane_tabelaryczne.md` | Części IV-V (HIGGS, ResNet): wybór zbioru, wyniki dla 3 ziaren, eksperymenty spoza notebooka, tło z literatury |
 
 Każdy fragment ma komentarz `<!-- lab_3_solution.ipynb, komórka [N] -->` wskazujący, skąd pochodzi.
 
