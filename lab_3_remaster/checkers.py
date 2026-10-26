@@ -19,8 +19,8 @@ __all__ = [
     "check_task_11",
     "check_task_12",
     "check_task_13",
-    "check_task_14",
-    "check_task_15",
+    "check_extra_task_1",
+    "check_extra_task_2",
     "check_experiment",
 ]
 
@@ -129,11 +129,7 @@ def check_mlp_training(model, X, y):
 
 # minimum test AUROC of the experiments in the notebook (with some margin for other random seeds)
 _MIN_TEST_AUROC = {
-    "MLP + early stopping": 0.76,
-    "+ dropout": 0.775,
-    "+ LR scheduler": 0.78,
-    "ResNet": 0.78,
-    "ResNet + batch norm": 0.79,
+    "MLP + dropout": 0.775,
 }
 
 
@@ -141,6 +137,29 @@ def _not_implemented(*objects):
     # templates leave `...` in place of the solution
     if any(obj is Ellipsis for obj in objects):
         raise NotImplementedError
+
+
+@_checker
+def check_task_9(TabularDataset, train_loader):
+    from torch.utils.data import DataLoader, Dataset, RandomSampler
+
+    X = torch.arange(30.0).reshape(10, 3)
+    y = torch.arange(10.0).unsqueeze(1)
+    dataset = TabularDataset(X, y)
+    assert isinstance(dataset, Dataset), "TabularDataset should inherit from torch.utils.data.Dataset"
+    _not_implemented(dataset.__len__(), dataset[0], train_loader)
+    assert dataset.__len__() == 10, "__len__ should return the number of examples, len(self.X)"
+    item = dataset[4]
+    assert isinstance(item, tuple) and len(item) == 2, "__getitem__(i) should return a pair (X[i], y[i])"
+    assert torch.equal(item[0], X[4]) and torch.equal(item[1], y[4]), "__getitem__(i) should return a pair (X[i], y[i])"
+    X_batch, y_batch = next(iter(DataLoader(dataset, batch_size=4)))
+    assert X_batch.shape == (4, 3) and y_batch.shape == (4, 1), "DataLoader should create batches of shape (4, 3) and (4, 1) from TabularDataset"
+
+    assert isinstance(train_loader, DataLoader), "train_loader should be a DataLoader"
+    assert isinstance(train_loader.dataset, TabularDataset), "create train_loader from TabularDataset(X_train_t, y_train_t)"
+    assert len(train_loader.dataset) == 38400, "train_loader should use the training set (X_train_t, y_train_t)"
+    assert train_loader.batch_size == 256, f"batch_size should be 256, got {train_loader.batch_size}"
+    assert isinstance(train_loader.sampler, RandomSampler), "train_loader should shuffle the data before every epoch (shuffle=True)"
 
 
 def _reference_epoch(model, loader, loss_fn, optimizer, zero_grad=True):
@@ -157,7 +176,7 @@ def _reference_epoch(model, loader, loss_fn, optimizer, zero_grad=True):
 
 
 @_checker
-def check_task_9(train_epoch):
+def check_task_10(train_epoch):
     from torch.utils.data import DataLoader, TensorDataset
 
     X = torch.randn(70, 3, generator=torch.Generator().manual_seed(0))
@@ -182,7 +201,7 @@ def check_task_9(train_epoch):
 
 
 @_checker
-def check_task_10(TabularMLP):
+def check_task_11(TabularMLP):
     model = TabularMLP(5, hidden_size=8, n_layers=2, dropout=0.1)
     types = [type(layer) for layer in model.layers]
     assert types == [nn.Linear, nn.ReLU, nn.Dropout] * 2 + [nn.Linear], \
@@ -196,29 +215,49 @@ def check_task_10(TabularMLP):
         "the number of hidden layers should be equal to n_layers"
 
 
-@_checker
-def check_task_11(EarlyStopping):
-    model = nn.Linear(1, 1)
-    early_stopping = EarlyStopping(patience=3)
-    losses = [1.0, 0.8, 0.9, 0.85, 0.7, 0.75, 0.76, 0.77]
-    stops = []
-    for epoch, val_loss in enumerate(losses):
+def _reference_fit(model, optimizer, loader, X_val, y_val, epochs):
+    loss_fn = nn.BCEWithLogitsLoss()
+    history = {"train_loss": [], "val_loss": []}
+    for _ in range(epochs):
+        history["train_loss"].append(_reference_epoch(model, loader, loss_fn, optimizer))
+        model.eval()
         with torch.no_grad():
-            model.weight.fill_(epoch)  # in-place change of the weights, like optimizer.step()
-        stops.append(early_stopping.step(val_loss, model))
-    assert stops == [False] * 7 + [True], \
-        f"step should return True after `patience` epochs without improvement, got {stops} for costs {losses}"
-    assert early_stopping.best_loss == 0.7 and early_stopping.best_epoch == 4, \
-        f"best_loss and best_epoch should be 0.7 and 4, got {early_stopping.best_loss} and {early_stopping.best_epoch}"
-    early_stopping.restore_best(model)
-    assert model.weight.item() == 4, (
-        f"after restore_best the model has the weights from epoch {model.weight.item():.0f}, not from the best epoch 4 - "
-        "store a copy in step (copy.deepcopy(model.state_dict())) and load it in restore_best (model.load_state_dict)"
-    )
+            history["val_loss"].append(loss_fn(model(X_val), y_val).item())
+    return history
 
 
 @_checker
-def check_task_12(MyDropout):
+def check_task_12(fit):
+    from torch.utils.data import DataLoader, TensorDataset
+
+    generator = torch.Generator().manual_seed(0)
+    X, X_val = torch.randn(64, 3, generator=generator), torch.randn(32, 3, generator=generator)
+    y, y_val = (X[:, :1] > 0).float(), (X_val[:, :1] > 0).float()
+    loader = DataLoader(TensorDataset(X, y), batch_size=16)
+
+    def run(fit_fn):
+        torch.manual_seed(0)
+        model = nn.Sequential(nn.Linear(3, 8), nn.Dropout(0.5), nn.Linear(8, 1))
+        optimizer = torch.optim.SGD(model.parameters(), lr=0.5)
+        return fit_fn(model, optimizer, loader, X_val, y_val, 3)
+
+    history = run(fit)
+    _not_implemented(history)
+    ref = run(_reference_fit)
+    assert isinstance(history, dict) and {"train_loss", "val_loss"} <= set(history), \
+        'fit should return a dict with the keys "train_loss" and "val_loss"'
+    assert len(history["train_loss"]) == 3 and len(history["val_loss"]) == 3, "the history should have one value per epoch"
+    assert all(isinstance(value, float) for value in history["train_loss"] + history["val_loss"]), \
+        "store Python floats in the history (use .item())"
+    assert abs(history["train_loss"][0] - ref["train_loss"][0]) < 1e-5, \
+        "wrong training cost - call train_epoch(model, train_loader, loss_fn, optimizer) once per epoch and store its result"
+    assert np.allclose(history["val_loss"], ref["val_loss"], atol=1e-5), \
+        "wrong validation cost - compute loss_fn(model(X_val), y_val) after every epoch, in evaluation mode (model.eval())"
+    assert np.allclose(history["train_loss"], ref["train_loss"], atol=1e-5), "wrong training costs in later epochs"
+
+
+@_checker
+def check_task_13(MyDropout):
     X = torch.ones(200, 500)
     dropout = MyDropout(p=0.3)
     dropout.eval()
@@ -237,17 +276,7 @@ def check_task_12(MyDropout):
 
 
 @_checker
-def check_task_13(scheduler, histories):
-    _not_implemented(scheduler)
-    assert isinstance(scheduler, torch.optim.lr_scheduler.ReduceLROnPlateau), "scheduler should be optim.lr_scheduler.ReduceLROnPlateau"
-    assert scheduler.factor == 0.5 and scheduler.patience == 2, "use factor=0.5 and patience=2"
-    assert "+ LR scheduler" in histories, 'train the model with run_experiment("+ LR scheduler", ...)'
-    lrs = histories["+ LR scheduler"]["lr"]
-    assert min(lrs) < lrs[0], "the learning rate never decreased - pass the scheduler to run_experiment"
-
-
-@_checker
-def check_task_14(ResidualBlock, TabularResNet):
+def check_extra_task_1(ResidualBlock, TabularResNet):
     block = ResidualBlock(8, dropout=0.1)
     types = [type(layer) for layer in block.block]
     assert types == [nn.Linear, nn.ReLU, nn.Dropout, nn.Linear], \
@@ -268,25 +297,18 @@ def check_task_14(ResidualBlock, TabularResNet):
     assert model.layers[-1].out_features == 1, "the output layer should return one logit"
     assert model(torch.randn(4, 5)).shape == (4, 1), "the model should map (N, n_features) to (N, 1)"
 
-    class OtherBlock(ResidualBlock):
-        pass
-
-    assert isinstance(TabularResNet(5, 8, 2, block=OtherBlock).layers[1], OtherBlock), "create the blocks with the `block` argument: block(hidden_size, dropout)"
-
 
 @_checker
-def check_task_15(NormResidualBlock, ResidualBlock):
-    block = NormResidualBlock(8, dropout=0.0)
-    assert isinstance(block, ResidualBlock) and hasattr(block, "block"), "call super().__init__(hidden_size, dropout) to create self.block"
-    _not_implemented(getattr(block, "norm", None))
-    assert isinstance(block.norm, nn.BatchNorm1d) and block.norm.num_features == 8, "self.norm should be nn.BatchNorm1d(hidden_size)"
-    X = torch.randn(16, 8) * 3 + 1
+def check_extra_task_2(proba_onnx, model, X):
+    _not_implemented(proba_onnx)
+    proba_onnx = np.asarray(proba_onnx)
+    assert proba_onnx.shape == (len(X),), \
+        f"proba_onnx should have shape ({len(X)},) - take the first output of session.run and squeeze it, got {proba_onnx.shape}"
+    model.eval()
     with torch.no_grad():
-        for mode in (block.train, block.eval):
-            mode()
-            out = block(X)
-            assert not torch.allclose(out, X + block.block(X)), "normalize the input of the branch: X + self.block(self.norm(X))"
-            assert torch.allclose(out, X + block.block(block.norm(X)), atol=1e-6), "forward should return X + self.block(self.norm(X))"
+        expected = torch.sigmoid(model(X)).squeeze(1).numpy()
+    assert np.allclose(proba_onnx, expected, atol=1e-5), \
+        'the probabilities differ from PyTorch - run session.run(None, {"features": X_test_t.numpy()})'
 
 
 @_checker
